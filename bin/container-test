@@ -1,0 +1,21 @@
+#!/bin/sh -e
+
+file=Dockerfile
+tagName=$(echo "container-test/$file" | awk '{print tolower($0)}' | sed 's/\./-/g')-$(date +%s)
+configFile=config-file.yaml
+
+docker pull gcr.io/gcp-runtimes/container-structure-test:v1.8.0
+
+if [ ! -f "$file" ]; then
+  echo "Error: $file not found!"
+  exit 1
+fi
+
+echo "Testing $file from $(pwd)"
+docker build -t $tagName -f $file . || { echo "Docker build failed"; exit 1; }
+docker run \
+  -v $(pwd):/app \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  gcr.io/gcp-runtimes/container-structure-test:v1.8.0 test \
+  --image $tagName \
+  --config /app/$configFile || { echo "Docker run failed"; exit 1; }

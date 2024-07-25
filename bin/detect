@@ -1,0 +1,3 @@
+#!/bin/sh
+
+echo "Prometheus" && exit 0
